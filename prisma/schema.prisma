@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  imageUrl    String?
+  category    String
+  
+  // Technical specs for compatibility
+  rms         Int?     // RMS Power
+  impedance   String?  // Ej: "2", "4", "D2", "D4"
+  channels    Int?     // Number of channels (for amps)
+  
+  // Relations for compatibility
+  // A product can be compatible with many other products.
+  compatibilities CompatibilityRule[] @relation("ProductToRule")
+  compatibleWith  CompatibilityRule[] @relation("CompatibleProduct")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CompatibilityRule {
+  id                  String   @id @default(uuid())
+  
+  productId           String
+  product             Product  @relation("ProductToRule", fields: [productId], references: [id], onDelete: Cascade)
+  
+  compatibleProductId String
+  compatibleProduct   Product  @relation("CompatibleProduct", fields: [compatibleProductId], references: [id], onDelete: Cascade)
+
+  description         String?  // Ej: "Requiere adaptador de impedancia"
+  
+  createdAt           DateTime @default(now())
+  
+  @@unique([productId, compatibleProductId])
+}
+
+model PortfolioWork {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  imageUrl    String
+  vehicle     String?  // Ej: "Peugeot 208", "Hilux"
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
